@@ -40,7 +40,7 @@ def run():
             out.append(chi_square_p(obs, exp * shots))
         return out
     blocks = block_ps(d["counts"], p, n)
-    # Separate blocks, which take a different path through the service.
+    # Separate blocks, a second shape of circuit for the same test.
     sep = QuantumCircuit(24)
     rng = np.random.default_rng(13)
     for b in range(0, 24, 8):
