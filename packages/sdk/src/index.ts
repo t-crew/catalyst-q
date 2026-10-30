@@ -18,6 +18,12 @@ const DEFAULT_TIMEOUT_MS = 120_000;
 // ---------------------------------------------------------------------------------------------------------------
 
 /** Raised for every failed call. `status` is the HTTP status (0 when no response arrived). */
+/** Named outcomes (`outcomes`), or random shots (`sampling: "random"` with `shots`). */
+export type DistributedRequest = { qasm: string; measure?: number[]; outcomes?: string[]; sampling?: "random"; shots?: number; seed?: number };
+export type DistributedShard = { shard_index: number; next: number | null } & Record<string, unknown>;
+export type DistributedProgress = { shards_done: number; shards_total: number; hops: number; credits: number };
+export type DistributedResult = { probabilities?: Record<string, number>; counts?: Record<string, number>; hops: number; credits: number; plan: { runs?: number; gates_across_cut?: number; work_total: number; credits_estimate: number } } & Record<string, unknown>;
+
 export class CatalystQError extends Error {
 	readonly status: number;
 	/** The server's error code (e.g. `authentication_required`, `insufficient_credits`), or a client code:
@@ -377,6 +383,32 @@ export class CatalystQ {
 	/** Logical channel of a rotated surface code under a coherent rotation error (distance 3 or 5). */
 	surfaceCode(body: { distance: 3 | 5; epsilon: number }): Promise<QecCoherentResponse | TryResponse> {
 		return this.#route("/api/v1/qec/coherent", "qec", body);
+	}
+
+	/**
+	 * A job too large for one request: named outcomes on a hard circuit, or a very large number of shots. The job travels in
+	 * its own payload, so this client carries it across as many requests as it needs, at the concurrency you choose, and any
+	 * failed request can simply be sent again. The answer is the same to the last bit at any concurrency. Needs a key.
+	 */
+	async distributed(body: DistributedRequest, options: { concurrency?: number; onProgress?: (progress: DistributedProgress) => void } = {}): Promise<DistributedResult> {
+		const planned = await this.#call<{ ok: true; plan: { job: unknown; shards: DistributedShard[]; work_total: number; runs?: number; gates_across_cut?: number }; credits_estimate: number }>("POST", "/api/v1/distributed/plan", body, true);
+		const { job, shards } = planned.plan;
+		const open = [...shards], done: DistributedShard[] = [];
+		let hops = 0, credits = 0;
+		const worker = async () => {
+			for (let shard = open.shift(); shard; shard = open.shift()) {
+				const reply = await this.#call<{ ok: true; shard: DistributedShard; usage?: { credits_charged?: number } }>("POST", "/api/v1/distributed/hop", { job, shard }, true);
+				hops++;
+				credits += reply.usage?.credits_charged ?? 0;
+				(reply.shard.next === null ? done : open).push(reply.shard);
+				options.onProgress?.({ shards_done: done.length, shards_total: shards.length, hops, credits });
+			}
+		};
+		// A worker that finds the list empty stops, and a shard still in flight may add itself back, so go round until none is left.
+		const width = Math.max(1, Math.floor(options.concurrency ?? 8));
+		while (done.length < shards.length) await Promise.all(Array.from({ length: width }, worker));
+		const fold = await this.#call<{ ok: true; result: Record<string, unknown> }>("POST", "/api/v1/distributed/fold", { job, shards: done }, true);
+		return { ...fold.result, hops, credits, plan: { runs: planned.plan.runs, gates_across_cut: planned.plan.gates_across_cut, work_total: planned.plan.work_total, credits_estimate: planned.credits_estimate } };
 	}
 
 	// -------------------------------------------------------------------------------------------------------------

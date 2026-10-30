@@ -27,6 +27,7 @@ Use it when:
 - A reversible or oracle circuit needs testing on chosen inputs at a width a laptop cannot hold.
 - A paper's figure or claim needs checking from its circuit.
 - A rotated surface code at distance 3 or 5 is being studied under a coherent error.
+- A refusal says `needs_distributed_run`: the job can still run, across many requests, with `distributed()` and a key. Tell the person the credit estimate first.
 
 Do not use it when:
 

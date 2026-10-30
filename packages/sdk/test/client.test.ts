@@ -298,3 +298,21 @@ test("a network failure throws code network_error with the cause", async () => {
 	assert.equal(err.status, 0);
 	assert.ok(err.cause instanceof TypeError);
 });
+
+test("distributed carries every shard through its hops and folds them", async () => {
+	const calls: string[] = [];
+	const q = new CatalystQ({ apiKey: "cq_live_x", fetch: (async (url: string, init: RequestInit) => {
+		const path = new URL(url).pathname, body = JSON.parse(String(init.body));
+		calls.push(path);
+		const reply = (v: unknown) => new Response(JSON.stringify(v), { status: 200, headers: { "content-type": "application/json" } });
+		if (path.endsWith("/plan")) return reply({ ok: true, plan: { job: { id: 1 }, shards: [{ shard_index: 0, next: 0 }, { shard_index: 1, next: 0 }], work_total: 5, runs: 8 }, credits_estimate: 1 });
+		if (path.endsWith("/hop")) return reply({ ok: true, shard: { ...body.shard, next: body.shard.step ? null : 1, step: 1 }, usage: { credits_charged: 1 } });
+		return reply({ ok: true, result: { probabilities: { "00": 0.5 }, shards: body.shards.length } });
+	}) as typeof fetch });
+	const out = await q.distributed({ qasm: "x", outcomes: ["00"] }, { concurrency: 2 });
+	assert.equal(out.shards, 2);
+	assert.equal(out.hops, 4);
+	assert.equal(out.credits, 4);
+	assert.deepEqual(out.probabilities, { "00": 0.5 });
+	assert.equal(calls.filter((c) => c.endsWith("/hop")).length, 4);
+});

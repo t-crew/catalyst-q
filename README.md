@@ -145,9 +145,13 @@ npm run desktop   # needs the Electron binary, which npm install fetches
 
 Node 22.18 or newer. Set `ELECTRON_SKIP_BINARY_DOWNLOAD=1` if you do not need the desktop app.
 
+## Jobs larger than one request
+
+With a key, `q.distributed({ qasm, outcomes })` carries a hard job across as many requests as it needs. All of the job's state travels in its own payload, so nothing is stored on the service between requests, a failed request can be sent again, and the answer is the same to the last bit at any concurrency. Fan-out divides the time. The total work stays the same, and for a hard circuit it doubles with each gate across the circuit's best cut.
+
 ## Reproduce every claim
 
-See [reproduce/](reproduce/).
+Every claim on the [Evidence page](https://catalyst-q.strategic-innovations.ai/bench) has a script here that computes the answer a second way and compares. See [reproduce/](reproduce/).
 
 ## License
 

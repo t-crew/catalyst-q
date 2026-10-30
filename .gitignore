@@ -3,3 +3,9 @@ dist/
 *.tgz
 .tmp/
 .DS_Store
+
+.memory-pulse/
+.claude/
+__pycache__/
+*.pyc
+results.jsonl

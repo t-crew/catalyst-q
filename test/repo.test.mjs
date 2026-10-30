@@ -41,7 +41,7 @@ test("the README keeps the reproduce section exactly as it was asked for", async
 	const readme = await read("README.md");
 	const section = readme.split(/^## /m).find((part) => part.startsWith("Reproduce every claim"));
 	assert.ok(section);
-	assert.equal(section.trim(), "Reproduce every claim\n\nSee [reproduce/](reproduce/).");
+	assert.equal(section.trim(), "Reproduce every claim\n\nEvery claim on the [Evidence page](https://catalyst-q.strategic-innovations.ai/bench) has a script here that computes the answer a second way and compares. See [reproduce/](reproduce/).");
 });
 
 test("the skill has the frontmatter hosts need", async () => {

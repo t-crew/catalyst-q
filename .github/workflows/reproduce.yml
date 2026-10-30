@@ -1,0 +1,34 @@
+name: reproduce
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+    inputs:
+      claim:
+        description: "One claim, such as c4_scrambled, or empty for all"
+        required: false
+        default: ""
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r reproduce/requirements.txt
+      - name: Run the checks
+        working-directory: reproduce
+        env:
+          CATALYST_Q_KEY: ${{ secrets.CATALYST_Q_KEY }}
+          CQ_SCALE: ${{ secrets.CATALYST_Q_KEY != '' && '1' || '0.05' }}
+        run: |
+          python run.py ${{ inputs.claim }} | tee results.jsonl
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: results
+          path: reproduce/results.jsonl
