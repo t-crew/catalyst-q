@@ -1,0 +1,44 @@
+{
+  "name": "catalyst-q-mcp",
+  "version": "0.2.0",
+  "description": "MCP stdio server for Catalyst-Q: run quantum circuits, sample shots, score device counts and ask where it can help.",
+  "license": "MIT",
+  "author": "Travis Crew",
+  "homepage": "https://catalyst-q.strategic-innovations.ai",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/t-crew/catalyst-q.git",
+    "directory": "packages/mcp"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "quantum",
+    "openqasm"
+  ],
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "./src/server.mjs",
+  "exports": {
+    ".": "./src/server.mjs",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "catalyst-q-mcp": "bin/catalyst-q-mcp.mjs"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "catalyst-q": "0.2.0",
+    "catalyst-q-advisor": "0.2.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  }
+}

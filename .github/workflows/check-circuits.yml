@@ -1,0 +1,18 @@
+name: Check circuits
+
+on:
+  pull_request:
+    paths: ["**/*.qasm"]
+
+permissions:
+  contents: read
+
+jobs:
+  circuits:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./action
+        with:
+          # A service outage should not block a merge in this repository.
+          fail-when-unreachable: false

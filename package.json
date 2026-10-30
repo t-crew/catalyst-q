@@ -1,0 +1,29 @@
+{
+  "name": "catalyst-q-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Client tools for the Catalyst-Q API: SDK, advisor, CLI, MCP server, desktop app, GitHub Action.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "workspaces": [
+    "packages/sdk",
+    "packages/advisor",
+    "packages/ui",
+    "packages/cli",
+    "packages/mcp",
+    "apps/desktop"
+  ],
+  "scripts": {
+    "build": "npm run build -w catalyst-q",
+    "test": "npm run build && node --test packages/sdk/test/client.test.ts packages/advisor/test/*.test.mjs packages/ui/test/*.test.mjs packages/cli/test/*.test.mjs packages/mcp/test/*.test.mjs action/test/*.test.mjs yardstick/test/*.test.mjs test/*.test.mjs",
+    "typecheck": "npm run typecheck -w catalyst-q",
+    "desktop": "npm run start -w catalyst-q-desktop"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "catalyst-q",
+  "owner": {
+    "name": "Travis Crew",
+    "url": "https://github.com/t-crew"
+  },
+  "description": "Catalyst-Q tools for agents.",
+  "plugins": [
+    {
+      "name": "catalyst-q",
+      "source": "./",
+      "description": "Run quantum circuits through a hosted API and get exact answers, or a refusal with the numbers. Includes an advisor that says when not to use it. Not a quantum computer.",
+      "author": {
+        "name": "Travis Crew"
+      },
+      "homepage": "https://catalyst-q.strategic-innovations.ai",
+      "license": "MIT",
+      "keywords": ["quantum", "openqasm", "qec", "mcp"]
+    }
+  ]
+}

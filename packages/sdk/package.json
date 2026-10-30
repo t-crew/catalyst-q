@@ -1,0 +1,58 @@
+{
+  "name": "catalyst-q",
+  "version": "0.2.0",
+  "description": "TypeScript client for the Catalyst-Q API. Send a quantum circuit, get exact answers back, or a refusal with the numbers.",
+  "license": "MIT",
+  "author": "Travis Crew",
+  "homepage": "https://catalyst-q.strategic-innovations.ai",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/t-crew/catalyst-q.git",
+    "directory": "packages/sdk"
+  },
+  "keywords": [
+    "quantum",
+    "quantum-computing",
+    "openqasm",
+    "simulation",
+    "qec",
+    "surface-code",
+    "api-client"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/cjs/index.d.ts",
+  "bin": {
+    "catalyst-q": "bin/catalyst-q.mjs"
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test test/client.test.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepack": "npm run build"
+  }
+}

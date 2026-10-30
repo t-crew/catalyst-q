@@ -1,0 +1,39 @@
+{
+  "name": "catalyst-q-advisor",
+  "version": "0.2.0",
+  "description": "Tells you where Catalyst-Q can help with your quantum work and when it cannot. Deterministic and local: no network, no LLM.",
+  "license": "MIT",
+  "author": "Travis Crew",
+  "homepage": "https://catalyst-q.strategic-innovations.ai",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/t-crew/catalyst-q.git",
+    "directory": "packages/advisor"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": false,
+  "main": "./src/index.mjs",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.mjs"
+    },
+    "./collect": {
+      "types": "./src/collect.d.ts",
+      "default": "./src/collect.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  }
+}

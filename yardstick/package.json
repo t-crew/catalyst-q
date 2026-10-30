@@ -1,0 +1,8 @@
+{
+  "name": "catalyst-q-yardstick-provider",
+  "version": "0.2.0",
+  "private": true,
+  "description": "A Quantum Yardstick provider for Catalyst-Q.",
+  "license": "MIT",
+  "type": "module"
+}

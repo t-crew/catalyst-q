@@ -1,0 +1,77 @@
+name: Catalyst-Q circuit check
+description: Runs the .qasm files changed in a pull request and writes the exact results, or the refusal with its numbers, to the job summary.
+author: Travis Crew
+branding:
+  icon: check-square
+  color: green
+
+inputs:
+  github-token:
+    description: Optional. With a token and comment set to true, the summary is also posted as a pull request comment. Not needed to run circuits.
+    required: false
+    default: ""
+  comment:
+    description: Post the summary as a pull request comment when a token is given.
+    required: false
+    default: "false"
+  paths:
+    description: Optional. Space-separated .qasm files to run instead of the files changed in the pull request.
+    required: false
+    default: ""
+  max-files:
+    description: The most files to run. The no-account route allows 6 calls a minute, and files past this limit are listed as not run.
+    required: false
+    default: "6"
+  counts:
+    description: Optional. Path to a counts JSON from a device to score.
+    required: false
+    default: ""
+  counts-circuit:
+    description: The .qasm file that produced the counts. Required when counts is set.
+    required: false
+    default: ""
+  api-key:
+    description: Optional. A Catalyst-Q key, for circuits wider than the no-account route allows. No secret is needed without it.
+    required: false
+    default: ""
+  base-url:
+    description: API address.
+    required: false
+    default: https://catalyst-q.strategic-innovations.ai
+  fail-on-refusal:
+    description: Fail the job when the service refuses a circuit. A refusal is a normal result, so this is off by default.
+    required: false
+    default: "false"
+  fail-when-unreachable:
+    description: Fail the job when the service gives no usable reply, because nothing was checked. Turn it off if this check must never block a merge.
+    required: false
+    default: "true"
+
+outputs:
+  answered:
+    description: How many circuits or count files got an answer.
+    value: ${{ steps.run.outputs.answered }}
+  refused:
+    description: How many were refused.
+    value: ${{ steps.run.outputs.refused }}
+  unreachable:
+    description: How many got no usable reply.
+    value: ${{ steps.run.outputs.unreachable }}
+
+runs:
+  using: composite
+  steps:
+    - id: run
+      shell: bash
+      run: node "$GITHUB_ACTION_PATH/run.mjs"
+      env:
+        CQ_TOKEN: ${{ inputs.github-token }}
+        CQ_COMMENT: ${{ inputs.comment }}
+        CQ_PATHS: ${{ inputs.paths }}
+        CQ_MAX_FILES: ${{ inputs.max-files }}
+        CQ_COUNTS: ${{ inputs.counts }}
+        CQ_COUNTS_CIRCUIT: ${{ inputs.counts-circuit }}
+        CQ_API_KEY: ${{ inputs.api-key }}
+        CQ_BASE_URL: ${{ inputs.base-url }}
+        CQ_FAIL_ON_REFUSAL: ${{ inputs.fail-on-refusal }}
+        CQ_FAIL_WHEN_UNREACHABLE: ${{ inputs.fail-when-unreachable }}

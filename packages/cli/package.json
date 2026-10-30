@@ -1,0 +1,44 @@
+{
+  "name": "catalyst-q-cli",
+  "version": "0.2.0",
+  "description": "The commands behind `npx catalyst-q`: suggest, run, sample, score and ui.",
+  "license": "MIT",
+  "author": "Travis Crew",
+  "homepage": "https://catalyst-q.strategic-innovations.ai",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/t-crew/catalyst-q.git",
+    "directory": "packages/cli"
+  },
+  "keywords": [
+    "quantum",
+    "openqasm",
+    "cli"
+  ],
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "./src/main.mjs",
+  "exports": {
+    ".": "./src/main.mjs",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "catalyst-q-cli": "bin/catalyst-q-cli.mjs"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "catalyst-q": "0.2.0",
+    "catalyst-q-advisor": "0.2.0",
+    "catalyst-q-ui": "0.2.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  }
+}

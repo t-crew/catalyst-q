@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="catalyst-q-session" content="__SESSION_TOKEN__">
+<meta name="catalyst-q-shell" content="__SHELL__">
+<meta name="color-scheme" content="light dark">
+<title>Catalyst-Q</title>
+<link rel="stylesheet" href="styles.css">
+<script type="module" src="app.mjs"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the page</a>
+<header class="topbar">
+  <div class="brand">
+    <svg class="meter" id="meter" viewBox="0 0 40 28" width="40" height="28" aria-hidden="true">
+      <rect x="1" y="1" width="38" height="26" rx="3" class="meter-box"></rect>
+      <path d="M8 21a12 12 0 0 1 24 0" class="meter-arc"></path>
+      <line x1="20" y1="21" x2="29" y2="11" class="meter-needle" id="needle"></line>
+    </svg>
+    <span class="wordmark">Catalyst-Q</span>
+  </div>
+  <nav class="tabs" aria-label="Views">
+    <button type="button" class="tab" data-view="ask" aria-current="page">Ask</button>
+    <button type="button" class="tab" data-view="run">Run a circuit</button>
+    <button type="button" class="tab" data-view="score">Score my counts</button>
+  </nav>
+  <p class="connection" id="connection" role="status" aria-live="polite">Checking the service</p>
+</header>
+
+<main id="main">
+
+  <section class="view" id="view-ask" aria-labelledby="ask-title">
+    <h1 id="ask-title">What are you trying to do?</h1>
+    <label class="sr-only" for="goal">Your goal</label>
+    <textarea id="goal" class="goal" rows="3" spellcheck="true" placeholder="For example: check the counts from my hardware run…"></textarea>
+    <div class="starters" id="starters"></div>
+    <div class="drop" id="ask-drop" tabindex="0" role="button" aria-label="Drop a file, or press Enter to choose one">
+      <span class="drop-main">Drop a circuit, some code or a results file here, or <span class="fake-link">choose one</span>.</span>
+      <span class="drop-sub">This screen runs on your computer. Nothing is sent until you press Run.</span>
+      <input type="file" id="ask-file" class="sr-only" tabindex="-1" multiple accept=".qasm,.py,.ipynb,.json,.txt,.md,.jl">
+    </div>
+    <ul class="dropped" id="ask-dropped" aria-label="Files you added"></ul>
+    <div id="advice" class="advice" aria-live="polite"></div>
+  </section>
+
+  <section class="view" id="view-run" aria-labelledby="run-title" hidden>
+    <h1 id="run-title">Run a circuit</h1>
+    <div class="panes">
+      <form class="pane" id="run-form" novalidate>
+        <div class="field-head">
+          <label for="qasm">Your circuit, in OpenQASM</label>
+          <span class="field-tools">
+            <label class="link-button" for="run-file">Open a file</label>
+            <input type="file" id="run-file" class="sr-only" accept=".qasm,.txt">
+            <label class="sr-only" for="example">Start from an example</label>
+            <select id="example" class="inline-select"><option value="">Start from an example</option></select>
+          </span>
+        </div>
+        <textarea id="qasm" class="code" rows="12" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="OPENQASM 3.0;&#10;qubit[2] q;&#10;h q[0];&#10;cx q[0], q[1];…"></textarea>
+        <p class="field-error" id="qasm-error" hidden></p>
+
+        <fieldset class="modes">
+          <legend>What do you want back?</legend>
+          <label class="mode"><input type="radio" name="mode" value="probabilities" checked><span>Every probability</span></label>
+          <label class="mode"><input type="radio" name="mode" value="shots"><span>Draw shots</span></label>
+          <label class="mode"><input type="radio" name="mode" value="outcomes"><span>Specific outcomes</span></label>
+          <label class="mode"><input type="radio" name="mode" value="expectation"><span>Expectation values</span></label>
+          <label class="mode"><input type="radio" name="mode" value="qec"><span>Surface code</span></label>
+        </fieldset>
+
+        <div class="mode-fields" id="fields-probabilities">
+          <label for="measure">Qubits to read</label>
+          <input id="measure" class="text mono" inputmode="numeric" spellcheck="false" placeholder="0,1…">
+          <p class="hint">Leave this blank if your circuit has measurements. Up to 20 qubits for the full table.</p>
+        </div>
+        <div class="mode-fields" id="fields-shots" hidden>
+          <div class="field-row">
+            <div><label for="shots">Shots</label><input id="shots" class="text mono" inputmode="numeric" value="1000"></div>
+            <div><label for="seed">Seed, to repeat a draw</label><input id="seed" class="text mono" inputmode="numeric" placeholder="1…"></div>
+            <div><label for="shots-measure">Qubits to read</label><input id="shots-measure" class="text mono" inputmode="numeric" spellcheck="false" placeholder="0,1…"></div>
+          </div>
+        </div>
+        <div class="mode-fields" id="fields-outcomes" hidden>
+          <label for="outcomes">Bit strings, with classical bit 0 on the right</label>
+          <input id="outcomes" class="text mono" spellcheck="false" placeholder="0101, 1100…">
+          <label for="outcomes-measure">Qubits to read</label>
+          <input id="outcomes-measure" class="text mono" inputmode="numeric" spellcheck="false" placeholder="0,1,2,3…">
+        </div>
+        <div class="mode-fields" id="fields-expectation" hidden>
+          <label for="observables">Observables</label>
+          <input id="observables" class="text mono" spellcheck="false" placeholder="ZZ on 0,1; mean_z…">
+          <p class="hint">Send a circuit with no measurements.</p>
+        </div>
+        <div class="mode-fields" id="fields-qec" hidden>
+          <div class="field-row">
+            <div><label for="distance">Distance</label><select id="distance" class="text"><option>3</option><option>5</option></select></div>
+            <div><label for="epsilon">Rotation error, epsilon</label><input id="epsilon" class="text mono" inputmode="decimal" value="0.05"></div>
+          </div>
+          <p class="hint">This one needs no circuit.</p>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="primary" id="run-button">Run it</button>
+          <span class="hint" id="run-hint"></span>
+        </div>
+      </form>
+      <div class="pane answer" id="run-answer" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-score" aria-labelledby="score-title" hidden>
+    <h1 id="score-title">Score my device counts</h1>
+    <p class="lede">Give it the circuit you ran and the counts you got. It compares them with the exact distribution of that circuit. It only knows about the counts you give it, and says nothing else about your device.</p>
+    <div class="panes">
+      <form class="pane" id="score-form" novalidate>
+        <div class="field-head">
+          <label for="score-qasm">The circuit you ran</label>
+          <span class="field-tools"><label class="link-button" for="score-qasm-file">Open a file</label>
+          <input type="file" id="score-qasm-file" class="sr-only" accept=".qasm,.txt"></span>
+        </div>
+        <textarea id="score-qasm" class="code" rows="8" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="OPENQASM 3.0;…"></textarea>
+        <p class="field-error" id="score-qasm-error" hidden></p>
+        <div class="field-head">
+          <label for="score-counts">Your counts</label>
+          <span class="field-tools"><label class="link-button" for="score-counts-file">Open a file</label>
+          <input type="file" id="score-counts-file" class="sr-only" accept=".json,.txt"></span>
+        </div>
+        <textarea id="score-counts" class="code" rows="6" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder='{"00": 498, "11": 502}…'></textarea>
+        <p class="hint" id="counts-read">Paste counts as JSON, a printed dictionary, or a results file. Classical bit 0 goes on the right.</p>
+        <p class="field-error" id="score-counts-error" hidden></p>
+        <div class="actions"><button type="submit" class="primary" id="score-button">Score it</button></div>
+      </form>
+      <div class="pane answer" id="score-answer" aria-live="polite"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <details class="keypanel" id="keypanel">
+    <summary id="key-summary">Using the no-account route</summary>
+    <div id="key-body"></div>
+  </details>
+  <p class="foot-note">Catalyst-Q runs quantum circuits on classical hardware and returns exact answers, or refuses with the numbers. It is not a quantum computer. Replies usually carry a permalink to a public record that includes the circuit, so do not send a circuit that must stay private.</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "catalyst-q": {
+      "command": "npx",
+      "args": ["-y", "catalyst-q-mcp"]
+    }
+  }
+}
