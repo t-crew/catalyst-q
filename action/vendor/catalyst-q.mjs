@@ -11,10 +11,6 @@
 export const VERSION = "0.2.0";
 export const DEFAULT_BASE_URL = "https://catalyst-q.strategic-innovations.ai";
 const DEFAULT_TIMEOUT_MS = 120_000;
-// ---------------------------------------------------------------------------------------------------------------
-// Errors
-// ---------------------------------------------------------------------------------------------------------------
-/** Raised for every failed call. `status` is the HTTP status (0 when no response arrived). */
 export class CatalystQError extends Error {
     status;
     /** The server's error code (e.g. `authentication_required`, `insufficient_credits`), or a client code:
@@ -127,6 +123,32 @@ export class CatalystQ {
     /** Logical channel of a rotated surface code under a coherent rotation error (distance 3 or 5). */
     surfaceCode(body) {
         return this.#route("/api/v1/qec/coherent", "qec", body);
+    }
+    /**
+     * A job too large for one request: named outcomes on a hard circuit, or a very large number of shots. The job travels in
+     * its own payload, so this client carries it across as many requests as it needs, at the concurrency you choose, and any
+     * failed request can simply be sent again. The answer is the same to the last bit at any concurrency. Needs a key.
+     */
+    async distributed(body, options = {}) {
+        const planned = await this.#call("POST", "/api/v1/distributed/plan", body, true);
+        const { job, shards } = planned.plan;
+        const open = [...shards], done = [];
+        let hops = 0, credits = 0;
+        const worker = async () => {
+            for (let shard = open.shift(); shard; shard = open.shift()) {
+                const reply = await this.#call("POST", "/api/v1/distributed/hop", { job, shard }, true);
+                hops++;
+                credits += reply.usage?.credits_charged ?? 0;
+                (reply.shard.next === null ? done : open).push(reply.shard);
+                options.onProgress?.({ shards_done: done.length, shards_total: shards.length, hops, credits });
+            }
+        };
+        // A worker that finds the list empty stops, and a shard still in flight may add itself back, so go round until none is left.
+        const width = Math.max(1, Math.floor(options.concurrency ?? 8));
+        while (done.length < shards.length)
+            await Promise.all(Array.from({ length: width }, worker));
+        const fold = await this.#call("POST", "/api/v1/distributed/fold", { job, shards: done }, true);
+        return { ...fold.result, hops, credits, plan: { runs: planned.plan.runs, gates_across_cut: planned.plan.gates_across_cut, work_total: planned.plan.work_total, credits_estimate: planned.credits_estimate } };
     }
     // -------------------------------------------------------------------------------------------------------------
     // Account routes and the no-account route, directly.
