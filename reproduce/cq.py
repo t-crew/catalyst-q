@@ -29,6 +29,9 @@ def call(path, body):
         with urllib.request.urlopen(req, timeout=600) as resp:
             return json.loads(resp.read())
     except urllib.error.HTTPError as e:
+        if e.code == 429:   # over the rate limit: wait as long as the reply says, then ask again
+            time.sleep(min(120, int(e.headers.get("retry-after") or 60)) + 1)
+            return call(path, body)
         return json.loads(e.read() or b"{}")
 
 
